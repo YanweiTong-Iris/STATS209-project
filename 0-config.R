@@ -1,0 +1,44 @@
+library(anthro)
+library(dplyr)
+library(assertthat)
+library(ggplot2)
+library(mgcv)
+library(tidyr)
+library(mediation)
+library(metafor)
+library(msm)
+library(tibble)
+library(haven)
+library(purrr)
+library(readxl)
+library(writexl)
+library(arsenal)
+library(expss)
+library(geepack)
+library(binom)
+library(Hmisc)
+library(OlinkAnalyze)
+library(factoextra)
+library(pls)
+library(RColorBrewer)
+library(forcats)
+library(stringr)
+# if (!requireNamespace("BiocManager", quietly = TRUE))
+#   install.packages("BiocManager")
+# BiocManager::install("ComplexHeatmap")
+library(ComplexHeatmap)
+library(gridExtra)
+library(forestplot)
+library(knitr)
+
+
+
+#Load utility functions
+util_functions = list.files(paste0(here::here(), "/0-base-functions/"), pattern = "*.R")
+for (util in util_functions) {
+  source(paste0(here::here(), "/0-base-functions/", util))
+} 
+
+data_path = paste0(here::here(), "/0-input-data/")
+results_path = paste0(here::here(), "/4-results/")
+
