@@ -14,72 +14,19 @@ options(scipen = 999)
 # load data
 #--------------------------------------------------------
 
-data_continuous = readRDS(paste0(data_path, "analysis_data_continuous.RDS"))
 data_zscore_monthly = readRDS(paste0(data_path, "analysis_data_zscore_monthly.RDS"))
 data_zscore_quarterly = readRDS(paste0(data_path, "analysis_data_zscore_quarterly.RDS"))
-data_prevalence_monthly = readRDS(paste0(data_path, "analysis_data_prevalence_monthly.RDS"))
-data_prevalence_quarterly = readRDS(paste0(data_path, "analysis_data_prevalence_quarterly.RDS"))
-data_incidence_1month = readRDS(paste0(data_path,"analysis_data_incidence_monthly.RDS"))
-data_incidence_3month = readRDS(paste0(data_path,"analysis_data_incidence_quarterly.RDS"))
-data_incidence_6month = readRDS(paste0(data_path,"analysis_data_incidence_biannual.RDS"))
-data_incidence_12month = readRDS(paste0(data_path,"analysis_data_incidence_annual.RDS"))
-data_velocity_1month = readRDS(paste0(data_path,"analysis_data_velocity_1month.RDS"))
-data_velocity_2month = readRDS(paste0(data_path,"analysis_data_velocity_2month.RDS")) 
-data_velocity_3month = readRDS(paste0(data_path,"analysis_data_velocity_3month.RDS")) 
-
 
 #--------------------------------------------------------
 # create outcome, age, and modifier list 
 #--------------------------------------------------------
 
-outcome_prevelance_monthly = c("haz_ms_stunt", "haz_s_stunt", "whz_ms_waste", "whz_s_waste", "waz_underwt")
-outcome_prevalence_quarterly = c("haz_ms_stunt_quarter", "haz_s_stunt_quarter", "whz_ms_waste_quarter", "whz_s_waste_quarter", "waz_underwt_quarter")
-
 outcome_zscore = c("haz", "whz", "waz")
 outcome_zscore_quarter = c("haz_quarter", "whz_quarter", "waz_quarter")
-outcome_velocity_1mo = c("wgv1", "wlz_gv1")
-outcome_velocity_2mo = c("lgv2", "laz_gv2")
-outcome_velocity_3mo = c("wgv3", "wlz_gv3", "lgv3", "laz_gv3")
-
-#"SGA" only eligible at birth, will be added seperately
-outcome_incidence_1mo = c(
-  "incident_haz_ms_stunt_agemonthcat",
-  "incident_haz_s_stunt_agemonthcat",
-  "incident_whz_ms_waste_agemonthcat",
-  "incident_whz_s_waste_agemonthcat",
-  "incident_waz_underwt_agemonthcat"
-)
-outcome_incidence_3mo = c(
-  "incident_haz_ms_stunt_agecat_birth",
-  "incident_haz_s_stunt_agecat_birth",
-  "incident_whz_ms_waste_agecat_birth",
-  "incident_whz_s_waste_agecat_birth",
-  "incident_waz_underwt_agecat_birth"
-)
-outcome_incidence_6mo = c(
-  "incident_haz_ms_stunt_age_6_12_month",
-  "incident_haz_s_stunt_age_6_12_month",
-  "incident_whz_ms_waste_age_6_12_month",
-  "incident_whz_s_waste_age_6_12_month",
-  "incident_waz_underwt_age_6_12_month"
-)
-outcome_incidence_12mo = c(
-  "incident_haz_ms_stunt_age_1_12",
-  "incident_haz_s_stunt_age_1_12",
-  "incident_whz_ms_waste_age_1_12",
-  "incident_whz_s_waste_age_1_12",
-  "incident_waz_underwt_age_1_12"
-)
-
 
 age_list_1mo_round = as.numeric(c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
 age_list_1mo_ceiling = as.numeric(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
-age_list_2mo = factor(c("<2 months", "2- 4 months", "4- 6 months", "6- 8 months", "8- 10 months", "10- 12 months"), levels = c("<2 months", "2- 4 months", "4- 6 months", "6- 8 months", "8- 10 months", "10- 12 months"))
-age_list_3mo = factor(c("0-3 months", ">3-6 months", ">6-9 months", ">9-12 months"), levels = c("0-3 months", ">3-6 months", ">6-9 months", ">9-12 months"))
 age_list_3mo_birth = factor(c("Birth", "1 day-3 months", ">3-6 months", ">6-9 months", ">9-12 months"), levels= c("Birth", "1 day-3 months", ">3-6 months", ">6-9 months", ">9-12 months"))
-age_list_6mo_birth = factor(c("birth", "1 day- <6 months", "6-12 months"), levels = c("birth", "1 day- <6 months", "6-12 months"))
-age_list_12mo_birth = factor(c("birth", "1 day- 12 months"), levels =c("birth", "1 day- 12 months"))
-
 
 #--------------------------------------------------------
 # aim1 analysis wrapper function
@@ -300,11 +247,6 @@ crossing_zscore_1mo = crossing(
   age_group = age_list_1mo_round,
   age_category = "agemonth_round") 
 
-crossing_prevalence_1mo = crossing(
-  outcome = outcome_prevelance_monthly,
-  time_unit = "1 month",
-  age_group = age_list_1mo_round,
-  age_category = "agemonth_round") 
 
 crossing_zscore_3mo = crossing(
   outcome = outcome_zscore_quarter,
@@ -314,66 +256,6 @@ crossing_zscore_3mo = crossing(
 ) %>%
   mutate(age_group = as.character(age_group))
 
-crossing_prevalence_3mo = crossing(
-  outcome = outcome_prevalence_quarterly,
-  time_unit = "3 month",
-  age_group = age_list_3mo_birth,
-  age_category = "agecat_birth"
-) %>%
-  mutate(age_group = as.character(age_group))
-
-crossing_velocity_1mo = crossing(outcome = outcome_velocity_1mo,
-                                 time_unit = "1 month",
-                                 age_group = age_list_1mo_ceiling) %>%
-  mutate(age_category = "agemonth_ceiling", age_group = as.character(age_group))
-
-crossing_velocity_2mo = crossing(outcome = outcome_velocity_2mo,
-                                 time_unit = "2 months",
-                                 age_group = age_list_2mo) %>%
-  mutate(age_category = "age_2_month", age_group = as.character(age_group))
-
-crossing_velocity_3mo = crossing(outcome = outcome_velocity_3mo,
-                                 time_unit = "3 months",
-                                 age_group = age_list_3mo) %>% 
-  mutate(age_category = "agecat", age_group = as.character(age_group))
-
-crossing_incidence_1mo = rbind(
-  crossing(
-    outcome = outcome_incidence_1mo,
-    time_unit = "1 month",
-    age_group = age_list_1mo_ceiling
-  ),
-  c("SGA_monthly", "1 month", "1")
-) %>% mutate(age_category = "agemonth_ceiling", age_group = as.character(age_group))
-
-crossing_incidence_3mo = rbind(
-  crossing(
-    outcome = outcome_incidence_3mo,
-    time_unit = "3 months",
-    age_group = age_list_3mo_birth
-  ),
-  c("SGA_quarterly", "3 months", "Birth")
-) %>% mutate(age_category = "agecat_birth", age_group = as.character(age_group))
-
-crossing_incidence_6mo = rbind(
-  crossing(
-    outcome = outcome_incidence_6mo,
-    time_unit = "6 month",
-    age_group = age_list_6mo_birth
-  ),
-  c("SGA_biannual", "6 months", "birth")
-) %>% mutate(age_category = "age_6_12_month") %>%
-  mutate(age_group = as.character(age_group))
-
-crossing_incidence_12mo = rbind(
-  crossing(
-    outcome = outcome_incidence_12mo,
-    time_unit = "12 month",
-    age_group = age_list_12mo_birth
-  ),
-  c("SGA_annual", "6 months", "birth")
-) %>% mutate(age_category = "age_1_12") %>%
-  mutate(age_group = as.character(age_group))
 
 # --------------------------------------------------------
 
@@ -410,8 +292,6 @@ aim1_application <-
 #--------------------------------------------------------
 # apply the wrapper function and save the results
 #--------------------------------------------------------
-#z_score_monthly_results = aim1_application(data_set = data_continuous, crossing_set = crossing_continuous_1mo, modifier_list = full_modifier_list, outcome_type = "continuous")
-#z_score_quarterly_results = aim1_application(data_set = data_continuous, crossing_set = crossing_continuous_3mo, modifier_list = full_modifier_list, outcome_type = "continuous")
 
 z_score_monthly_results_stratified = aim1_application(data_set = data_zscore_monthly, crossing_set = crossing_zscore_1mo, modifier_list = full_modifier_list, outcome_type = "continuous")
 View(z_score_monthly_results_stratified)
@@ -420,40 +300,4 @@ saveRDS(z_score_monthly_results_stratified, paste0(results_path,"aim1-stratified
 z_score_quarterly_results_stratified = aim1_application(data_set = data_zscore_quarterly, crossing_set = crossing_zscore_3mo, modifier_list = full_modifier_list, outcome_type = "continuous")
 View(z_score_quarterly_results_stratified)
 saveRDS(z_score_quarterly_results_stratified, paste0(results_path,"aim1-stratified/aim1_zscore_quarterly_results_stratified.RDS"))
-
-velocity_1mo_results_stratified = aim1_application(data_set = data_velocity_1month, crossing_set = crossing_velocity_1mo, modifier_list = full_modifier_list, outcome_type = "continuous")
-View(velocity_1mo_results_stratified)
-saveRDS(velocity_1mo_results_stratified, paste0(results_path,"aim1-stratified/aim1_velocity_1mo_results_stratified.RDS"))
-
-velocity_2mo_results_stratified = aim1_application(data_set = data_velocity_2month, crossing_set = crossing_velocity_2mo, modifier_list = full_modifier_list, outcome_type = "continuous")
-View(velocity_2mo_results_stratified)
-saveRDS(velocity_2mo_results_stratified, paste0(results_path,"aim1-stratified/aim1_velocity_2mo_results_stratified.RDS"))
-
-velocity_3mo_results_stratified = aim1_application(data_set = data_velocity_3month, crossing_set = crossing_velocity_3mo, modifier_list = full_modifier_list, outcome_type = "continuous")
-View(velocity_3mo_results_stratified)
-saveRDS(velocity_3mo_results_stratified, paste0(results_path,"aim1-stratified/aim1_velocity_3mo_results_stratified.RDS"))
-
-prevalence_monthly_results_stratified = aim1_application(data_set = data_prevalence_monthly, crossing_set = crossing_prevalence_1mo, modifier_list = full_modifier_list, outcome_type = "binary")
-View(prevalence_monthly_results_stratified)
-saveRDS(prevalence_monthly_results_stratified, paste0(results_path,"aim1-stratified/aim1_prevalence_monthly_results_stratified.RDS"))
-
-prevalence_quarterly_results_stratified = aim1_application(data_set = data_prevalence_quarterly, crossing_set = crossing_prevalence_3mo, modifier_list = full_modifier_list, outcome_type = "binary")
-View(prevalence_quarterly_results_stratified)
-saveRDS(prevalence_quarterly_results_stratified, paste0(results_path,"aim1-stratified/aim1_prevalence_quarterly_results_stratified.RDS"))
-
-incidence_1mo_results_stratified = aim1_application(data_set = data_incidence_1month, crossing_set = crossing_incidence_1mo, modifier_list = full_modifier_list, outcome_type = "binary")
-View(incidence_1mo_results_stratified)
-saveRDS(incidence_1mo_results_stratified, paste0(results_path,"aim1-stratified/aim1_incidence_1mo_results_stratified.RDS"))
-
-incidence_3mo_results_stratified = aim1_application(data_set = data_incidence_3month, crossing_set = crossing_incidence_3mo, modifier_list = full_modifier_list, outcome_type = "binary")
-View(incidence_3mo_results_stratified)
-saveRDS(incidence_3mo_results_stratified, paste0(results_path,"aim1-stratified/aim1_incidence_3mo_results_stratified.RDS"))
-
-incidence_6mo_results_stratified = aim1_application(data_set = data_incidence_6month, crossing_set = crossing_incidence_6mo, modifier_list = full_modifier_list, outcome_type = "binary")
-View(incidence_6mo_results_stratified)
-saveRDS(incidence_6mo_results_stratified, paste0(results_path,"aim1-stratified/aim1_incidence_6mo_results_stratified.RDS"))
-
-incidence_12mo_results_stratified = aim1_application(data_set = data_incidence_12month, crossing_set = crossing_incidence_12mo, modifier_list = full_modifier_list, outcome_type = "binary")
-View(incidence_12mo_results_stratified)
-saveRDS(incidence_12mo_results_stratified, paste0(results_path,"aim1-stratified/aim1_incidence_12mo_results_stratified.RDS"))
 
