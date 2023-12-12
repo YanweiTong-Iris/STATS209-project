@@ -40,5 +40,6 @@ for (util in util_functions) {
 } 
 
 data_path = paste0(here::here(), "/0-input-data/")
-results_path = paste0(here::here(), "/4-results/")
+results_path = paste0(here::here(), "/4-result-data/")
+figure_path = paste0(here::here(), "/3-figures/")
 
