@@ -34,18 +34,23 @@ IM_zscore_3mo = readRDS(paste0(here::here(), "/4-result-data/intervention_mediat
     mediator == "birthlength" ~ "Birth length (cm)",
     mediator == "birthweight_kg" ~ "Birth weight (kg)"
   )) %>% 
-  mutate(mediator_label = factor(mediator_label, levels = rev(c( "Maternal anemia",
-                                                                                     "Gestational weight\nchange (kg)",
-                                                                                     "Placental malaria",
-                                                                                     "Stem cell factor (SCF)",
-                                                                                     "Interleukin-4 (IL4)",
-                                                                                     "Interleukin-10 (IL10)",
-                                                                                     "TNF-related activation-\ninduced cytokine\n(TRANCE)",
-                                                                                     "Interferon gamma\n(IFN-gamma)",
-                                                                                     "Preterm birth",
-                                                                                     "Low birth weight",
-                                                                                     "Birth length (cm)",
-                                                                                     "Birth weight (kg)"
+  mutate(
+    mediator_label = factor(
+      mediator_label,
+      levels = rev(
+        c(
+          "Maternal anemia",
+          "Gestational weight\nchange (kg)",
+          "Placental malaria",
+          "Stem cell factor (SCF)",
+          "Interleukin-4 (IL4)",
+          "Interleukin-10 (IL10)",
+          "TNF-related activation-\ninduced cytokine\n(TRANCE)",
+          "Interferon gamma\n(IFN-gamma)",
+          "Preterm birth",
+          "Low birth weight",
+          "Birth length (cm)",
+          "Birth weight (kg)"
   )))) 
   
 binary_mediators_main = c("anemia_28binary", "placentalmal", "preterm", "LBW")
@@ -57,9 +62,9 @@ continuous_mediator = c("gestational_weightchange", "IL4", "IL10", "SCF",
 
 IM_plot_binary <- ggplot(IM_zscore_3mo %>% filter(mediator %in% binary_mediators_main),
                          aes(x = mediator_label, y = adjusted_point_estimate, col = gravidae)) +
-  geom_point(size = 1.5, position = position_dodge(width = 0.4)) +
+  geom_point(size = 1.5, position = position_dodge(width = 0.6)) +
   geom_linerange(aes(ymin = adjusted_lower_95CI, ymax = adjusted_upper_95CI, col = gravidae),
-                 position = position_dodge(width = 0.4)) +
+                 position = position_dodge(width = 0.6)) +
   geom_hline(yintercept = 1, linetype = "dashed") +
   scale_color_manual(values = c("#999999", "#6600CC"), drop = FALSE) +
   coord_flip() +
@@ -72,13 +77,13 @@ IM_plot_binary <- ggplot(IM_zscore_3mo %>% filter(mediator %in% binary_mediators
   ylab("Risk Ratio (95% CI)") +
   ggtitle("Dichotomous Mediators") +
   theme(strip.text.y = element_text(angle = 0),
-        plot.title =element_text(hjust = -0.1, size = 11))
+        plot.title =element_text(hjust = -0.12, size = 11))
 
 IM_plot_continuous <- ggplot(IM_zscore_3mo %>% filter(mediator %in% continuous_mediator),
                          aes(x = mediator_label, y = adjusted_point_estimate, col = gravidae)) +
-  geom_point(size = 1.5, position = position_dodge(width = 0.4)) +
+  geom_point(size = 1.5, position = position_dodge(width = 0.6)) +
   geom_linerange(aes(ymin = adjusted_lower_95CI, ymax = adjusted_upper_95CI, col = gravidae),
-                 position = position_dodge(width = 0.4)) +
+                 position = position_dodge(width = 0.6)) +
   geom_hline(yintercept = 0, linetype = "dashed") +
   scale_color_manual(values = c("#999999", "#6600CC"), drop = FALSE) +
   coord_flip() +
@@ -97,7 +102,7 @@ IM_plot_continuous <- ggplot(IM_zscore_3mo %>% filter(mediator %in% continuous_m
 IM_plot <- grid.arrange(
   IM_plot_binary, 
   IM_plot_continuous, 
-  heights = c(2, 4.3), 
+  heights = c(2.1, 4.3), 
   ncol = 1,
   top = textGrob("Intervention-Mediator Effects by Gravidity", gp = gpar(fontsize = 13), hjust = 1)
 )
