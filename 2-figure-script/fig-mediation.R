@@ -91,9 +91,9 @@ process_data <- function(input_data, outcome_type){
   if(outcome_type=="continuous"){
     output_data <- output_data %>% 
       mutate(favors = case_when(
-        average < -0.001 & average_upper_CI < -0.001 ~ "SP promotes\ngrowth",
-        average_lower_CI <= -0.001 & average_upper_CI >= -0.001 ~ "Null",
-        average > -0.001 & average_lower_CI > -0.001 ~ "DP promotes\ngrowth" 
+        average < 0 & average_upper_CI < 0 ~ "SP promotes\ngrowth",
+        average_lower_CI <= 0 & average_upper_CI >= 0 ~ "Null",
+        average > 0 & average_lower_CI > 0 ~ "DP promotes\ngrowth" 
       )) %>% 
       mutate(favors = factor(favors, levels = c("SP promotes\ngrowth", "Null", "DP promotes\ngrowth"))) 
   }
