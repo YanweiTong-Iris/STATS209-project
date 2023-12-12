@@ -281,10 +281,6 @@ crossing_IM_main= rbind(crossing(
   mediator_type = "continuous"
 ))
 
-crossing_IM_malaria = crossing(
-  mediator = "anymalaria",
-  mediator_type = "binary"
-)
 
 #--------------------------------------------------------
 # save the results
@@ -299,5 +295,5 @@ saveRDS(IM_results_full, paste0(results_path,"intervention_mediator_full_results
 
 IM_results_main = intervention_mediator_application(data_set = data_zscore_quarterly, crossing_set = crossing_IM_main)
 View(IM_results_main)
-saveRDS(IM_results_main, paste0(results_path,"IM-MO-stratified/intervention_mediator_main_results_stratified.RDS"))
+saveRDS(IM_results_main, paste0(results_path,"intervention_mediator_main_results_stratified.RDS"))
 
