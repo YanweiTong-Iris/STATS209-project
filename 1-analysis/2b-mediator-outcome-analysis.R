@@ -11,77 +11,22 @@ source(paste0(here::here(), "/0-config.R"))
 # load data
 #--------------------------------------------------------
 
-data_continuous = readRDS(paste0(here::here(), "/0-input-data/analysis_data_continuous.RDS"))
-data_monthly_ceiling = readRDS(paste0(here::here(), "/0-input-data/analysis_data_monthly_ceiling.RDS"))
-data_zscore_monthly = readRDS(paste0(here::here(), "/0-input-data/analysis_data_zscore_monthly.RDS"))
 data_zscore_quarterly = readRDS(paste0(here::here(), "/0-input-data/analysis_data_zscore_quarterly.RDS")) %>% 
   mutate(birthweight_01kg = birthweight_kg * 10)
-#data_prevalence_quarterly = readRDS(paste0(here::here(), "/0-input-data/analysis_data_prevalence_quarterly.RDS"))
-data_incidence_3month = readRDS(paste0(here::here(), "/0-input-data/analysis_data_incidence_quarterly.RDS"))
-data_incidence_6month = readRDS(paste0(here::here(), "/0-input-data/analysis_data_incidence_biannual.RDS"))
-data_incidence_12month = readRDS(paste0(here::here(), "/0-input-data/analysis_data_incidence_annual.RDS"))
-
 
 #--------------------------------------------------------
 # create outcome, age, and mediator list 
 #--------------------------------------------------------
 
-outcome_monthly_round_continuous = c("haz", "whz", "waz")
-outcome_monthly_round_binary = c("haz_ms_stunt", "haz_s_stunt", 
-                          "whz_ms_waste", "whz_s_waste", "waz_underwt")
-
-outcome_monthly_ceiling_continuous = c("haz", "whz", "waz") 
-outcome_monthly_ceiling_binary = c("incident_haz_ms_stunt_agemonthcat",
-                            "incident_haz_s_stunt_agemonthcat",
-                            "incident_whz_ms_waste_agemonthcat",
-                            "incident_whz_s_waste_agemonthcat",
-                            "incident_waz_underwt_agemonthcat")
-
 outcome_z_score_quarter = c("haz_quarter", "whz_quarter", "waz_quarter")
-outcome_prevalence_quarterly = c("haz_ms_stunt_quarter", "haz_s_stunt_quarter", "whz_ms_waste_quarter", "whz_s_waste_quarter", "waz_underwt_quarter")
-
-outcome_velocity_1mo = c("wgv1", "wlz_gv1")
-outcome_velocity_2mo = c("lgv2", "laz_gv2")
-outcome_velocity_3mo = c("wgv3", "wlz_gv3", "lgv3", "laz_gv3")
-
-#"SGA" only eligible at birth, will be added separately
-outcome_incidence_3mo = c(
-  "incident_haz_ms_stunt_agecat_birth",
-  "incident_haz_s_stunt_agecat_birth",
-  "incident_whz_ms_waste_agecat_birth",
-  "incident_whz_s_waste_agecat_birth",
-  "incident_waz_underwt_agecat_birth"
-)
-outcome_incidence_6mo = c(
-  "incident_haz_ms_stunt_age_6_12_month",
-  "incident_haz_s_stunt_age_6_12_month",
-  "incident_whz_ms_waste_age_6_12_month",
-  "incident_whz_s_waste_age_6_12_month",
-  "incident_waz_underwt_age_6_12_month"
-)
-outcome_incidence_12mo = c(
-  "incident_haz_ms_stunt_age_1_12",
-  "incident_haz_s_stunt_age_1_12",
-  "incident_whz_ms_waste_age_1_12",
-  "incident_whz_s_waste_age_1_12",
-  "incident_waz_underwt_age_1_12"
-)
-
-age_list_1mo_ceiling = as.numeric(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12))
-age_list_2mo = factor(c("<2 months", "2- 4 months", "4- 6 months", "6- 8 months", "8- 10 months", "10- 12 months"), levels = c("<2 months", "2- 4 months", "4- 6 months", "6- 8 months", "8- 10 months", "10- 12 months"))
-age_list_3mo = factor(c("0-3 months", ">3-6 months", ">6-9 months", ">9-12 months"), levels = c("0-3 months", ">3-6 months", ">6-9 months", ">9-12 months"))
 age_list_3mo_birth = factor(c("Birth", "1 day-3 months", ">3-6 months", ">6-9 months", ">9-12 months"), levels= c("Birth", "1 day-3 months", ">3-6 months", ">6-9 months", ">9-12 months"))
-age_list_6mo_birth = factor(c("birth", "1 day- <6 months", "6-12 months"), levels = c("birth", "1 day- <6 months", "6-12 months"))
-age_list_12mo_birth = factor(c("birth", "1 day- 12 months"), levels =c("birth", "1 day- 12 months"))
 
-# can include "anyhb_28", "anyhb_36" as continuous measures
 binary_mediators = c("LBW", "preterm", "anyHP", "placentalLAMPdich", 
                      "placentalmal", "anemia_28binary", "anemia_36binary",
                      "antibacterial_binary", "betalactam_binary",
                      "fluoroquinolone_binary", "sulfonamide_binary",
                      "antibacterial_other_binary", "antimalarial_binary", 
                      "antiparasitic_binary", "antiviral_binary")
-# anymalaria varies with infant age, will be addressed individually (monthly only)
 
 # anymed_binary, any_nonmalaria_med_binary lack of variability
 maternal_mediators = c("LBW", "preterm", "placentalmal", "anemia_28binary", 
@@ -98,9 +43,6 @@ maternal_mediators_main = c("anemia_28binary", "gestational_weightchange",
                             "preterm", "LBW","birthweight", "birthlength", 
                             "birthweight_kg", "birthweight_01kg")
 
-maternal_mediators_2.1 = c("anemia_28binary", "gestational_weightchange",
-                           "antibacterial_binary", "betalactam_binary",
-                           "placentalmal", "SCF","IL4", "IL10")
 
 preceding_malaria_mediator = c("prec_malaria_stunt", "prec_malaria_waste")
 
@@ -178,35 +120,13 @@ mediator_analysis <- function(data, time_unit, age_category, age_group, model, i
   confounder <- NA
   adjusted <- 0
   
-  # output_list = list()
-  # strata_list = list(
-  #   "all" = c("single", "multi"),
-  #   "single" = c("single"),
-  #   "multi" = c("multi")
-  # )
-  # 
-  # for (i in 1:3) {
-  #   strata_name = names(strata_list)[[i]]
-  #   strata = strata_list[[strata_name]]
   if(gravidity_strata == "all"){
     data_stratified = data_age
   }else {
     data_stratified = data_age %>% filter(gravidity_cat == gravidity_strata)
     }
     
-   
-    # IM analysis now in file 7a
-    # else if (model == "intervention-mediator") {
-    #   data_age[[dependent_var]] <-
-    #     as.numeric(as.character(data_age[[dependent_var]]))
-    #   formula <-
-    #     as.formula(paste(dependent_var, "~", independent_var))
-    # } 
-    
-
-    # Compose the formula
-    # if (model == "mediator-outcome" &
-    #     independent_var %in% c("preterm", "LBW", "birthweight", "birthlength", "gestational_weightchange")) {
+  
        adjusted <- 1
        confounder <- "full"
       if (gravidity_strata == "all") {
@@ -218,17 +138,7 @@ mediator_analysis <- function(data, time_unit, age_category, age_group, model, i
           as.formula(paste(dependent_var,"~",independent_var,
               "+ Txarm + sex + GAenroll + enrollage + APdichenroll + educdich + wealthcat"))
       }
-    # } else {
-    #   adjusted <- 1
-    #   confounder <- "full- sex"
-    #   if (gravidity_strata == "all") {
-    #     formula <-as.formula(paste(dependent_var,"~", independent_var,
-    #           "+ Txarm + gravidity_cat+ GAenroll + enrollage + APdichenroll + educdich + wealthcat"))
-    #   } else{
-    #     formula <-as.formula(paste(dependent_var,"~",independent_var,
-    #                                "+ Txarm + GAenroll + enrollage + APdichenroll + educdich + wealthcat"))
-    #   }
-    # }
+    
     print(formula)
   
     # Check if the outcome has enough variation
@@ -369,10 +279,7 @@ mediator_analysis <- function(data, time_unit, age_category, age_group, model, i
     )
   }
   rownames(output) <- NULL
-  #output_list[[i]] = output
-  #output_df = bind_rows(output_list)
-  #print(output_df)
-  #return(output_df)
+  
   return(output)
 }
 
@@ -411,68 +318,6 @@ mediator_analysis_application <-
 # create crossing sets 
 #--------------------------------------------------------
 
-# IM = intervention-mediator
-# MO = mediator-outcome
-
-# anymalaria at birth removed due to low variability
-
-# crossing_malaria_outcome_MO_round = rbind(
-#   crossing(
-#     independent_var = "new_anymalaria",
-#     dependent_var = outcome_monthly_round_continuous,
-#     time_unit = "1 month",
-#     age_group = c(0,1,2,3,4,5,6,7,8,9,10,11,12),
-#     age_category = "agemonth_round",
-#     dependent_type = "continuous"
-#   ), crossing(
-#     independent_var = "new_anymalaria",
-#     dependent_var = outcome_monthly_round_binary,
-#     time_unit = "1 month",
-#     age_group = c(0,1,2,3,4,5,6,7,8,9,10,11,12),
-#     age_category = "agemonth_round",
-#     dependent_type = "binary"
-#   ))
-# 
-crossing_malaria_outcome_MO_ceiling = rbind(crossing(
-    independent_var = "new_anymalaria",
-    dependent_var = outcome_monthly_ceiling_continuous,
-    time_unit = "1 month",
-    age_group = factor(c(1,2,3,4,5,6,7,8,9,10,11,12)),
-    age_category = "agemonth_ceiling",
-    dependent_type = "continuous",
-    gravidity_strata = c("all", "single", "multi")),
-    crossing(
-      independent_var = "anymalaria",
-      dependent_var = outcome_monthly_ceiling_continuous,
-      time_unit = "1 month",
-      age_group = factor(c(1,2,3,4,5,6,7,8,9,10,11,12)),
-      age_category = "agemonth_ceiling",
-      dependent_type = "continuous",
-      gravidity_strata = c("all", "single", "multi"))
-    )
-  
-  # ),
-  # crossing(
-  #   independent_var = "anymalaria",
-  #   dependent_var = outcome_monthly_ceiling_binary,
-  #   time_unit = "1 month",
-  #   age_group = factor(c(1,2,3,4,5,6,7,8,9,10,11,12)),
-  #   age_category = "agemonth_ceiling",
-  #   dependent_type = "binary",
-  #   gravidity_strata = c("all", "single", "multi"),
-  # ))
-
-crossing_preceding_malaria = crossing(
-  independent_var = preceding_malaria_mediator,
-  dependent_var = c("incident_haz_ms_stunt_agecat_birth",
-              "incident_whz_ms_waste_agecat_birth"),
-  time_unit = "3 month",
-  age_group = age_list_3mo_birth,
-  age_category = "agecat_birth",
-  dependent_type = "binary",
-  gravidity_strata = c("all", "single", "multi")
-) %>% mutate(age_group = as.character(age_group))
-
 crossing_zscore_MO_3mo =crossing(
     independent_var = maternal_mediators_main,
     dependent_var = outcome_z_score_quarter,
@@ -483,113 +328,7 @@ crossing_zscore_MO_3mo =crossing(
     dependent_type = "continuous"
   ) %>% mutate(age_group = as.character(age_group))
 
-crossing_prevalence_MO_3mo = crossing(
-    independent_var = maternal_mediators_main,
-    dependent_var = outcome_prevalence_quarterly,
-    time_unit = "3 month",
-    age_group = age_list_3mo_birth,
-    age_category = "agecat_birth",
-    gravidity_strata = c("all", "single", "multi"),
-    dependent_type = "binary"
-  ) %>% mutate(age_group = as.character(age_group))
 
-crossing_velocity_1mo = crossing(
-  independent_var = maternal_mediators_main,
-  dependent_var = outcome_velocity_1mo,
-  time_unit = "1 month",
-  age_group = age_list_1mo_ceiling,
-  age_category = "agemonth_ceiling",
-  gravidity_strata = c("all", "single", "multi"),
-  dependent_type = "continuous"
-) %>% mutate(age_group = as.character(age_group))
-
-crossing_velocity_2mo = crossing(
-  independent_var = maternal_mediators_main,
-  dependent_var = outcome_velocity_2mo,
-  time_unit = "2 month",
-  age_group = age_list_2mo,
-  age_category = "age_2_month",
-  gravidity_strata = c("all", "single", "multi"),
-  dependent_type = "continuous"
-) %>% mutate(age_group = as.character(age_group))
-
-crossing_velocity_3mo = crossing(
-  independent_var = maternal_mediators_main,
-  dependent_var = outcome_velocity_3mo,
-  time_unit = "3 month",
-  age_group = age_list_3mo,
-  age_category = "agecat",
-  gravidity_strata = c("all", "single", "multi"),
-  dependent_type = "continuous"
-) %>% mutate(age_group = as.character(age_group))
-
-crossing_incidence_3mo = rbind(
-  crossing(independent_var = maternal_mediators_main,
-           dependent_var = outcome_incidence_3mo,
-           time_unit = "3 month",
-           age_group = age_list_3mo_birth,
-           age_category = "agecat_birth",
-           gravidity_strata = c("all", "single", "multi"),
-           dependent_type = "binary"),
-  crossing(independent_var = maternal_mediators_main,
-           dependent_var = "SGA_quarterly",
-           time_unit = "3 month",
-           age_group = "Birth",
-           age_category = "agecat_birth",
-           gravidity_strata = c("all", "single", "multi"),
-           dependent_type = "binary")) %>%
-  mutate(age_group = as.character(age_group))
-
-crossing_incidence_6mo = rbind(
-  crossing(independent_var = maternal_mediators_main,
-           dependent_var = outcome_incidence_6mo,
-           time_unit = "6 month",
-           age_group = age_list_6mo_birth,
-           age_category = "age_6_12_month",
-           gravidity_strata = c("all", "single", "multi"),
-           dependent_type = "binary"),
-  crossing(independent_var = maternal_mediators_main,
-           dependent_var = "SGA_biannual",
-           time_unit = "6 month",
-           age_group = "birth",
-           age_category = "age_6_12_month",
-           gravidity_strata = c("all", "single", "multi"),
-           dependent_type = "binary")) %>%
-  mutate(age_group = as.character(age_group))
-
-crossing_incidence_12mo = rbind(
-  crossing(independent_var = maternal_mediators_main,
-           dependent_var = outcome_incidence_12mo,
-           time_unit = "12 month",
-           age_group = age_list_12mo_birth,
-           age_category = "age_1_12",
-           gravidity_strata = c("all", "single", "multi"),
-           dependent_type = "binary"),
-  crossing(independent_var = maternal_mediators_main,
-           dependent_var = "SGA_annual",
-           time_unit = "12 month",
-           age_group = "birth",
-           age_category = "age_1_12",
-           gravidity_strata = c("all", "single", "multi"),
-           dependent_type = "binary")) %>%
-  mutate(age_group = as.character(age_group))
-
-crossing_2.1 = rbind(
-  crossing(independent_var = maternal_mediators_2.1,
-           dependent_var = c("LBW", "preterm"),
-           time_unit = "3 month",
-           age_group = "Birth",
-           age_category = "agecat_birth",
-           gravidity_strata = c("all", "single", "multi"),
-           dependent_type = "binary"),
-  crossing(independent_var = maternal_mediators_2.1,
-           dependent_var = c("birthlength", "birthweight_kg"),
-           time_unit = "3 month",
-           age_group = "Birth",
-           age_category = "agecat_birth",
-           gravidity_strata = c("all", "single", "multi"),
-           dependent_type = "continuous")) %>%
-  mutate(age_group = as.character(age_group))
 
 #--------------------------------------------------------
 # save the results
@@ -598,92 +337,8 @@ crossing_2.1 = rbind(
 #prevent using scientific notations
 options(scipen = 999)
 
-# ! IM results are now analyzed in 7a-intervention-mediator-analysis
-# IM_results = mediator_analysis_application(data_set = data_zscore_quarterly, crossing_set = crossing_IM, model = "intervention-mediator")
-# View(IM_results)
-# saveRDS(IM_results, paste0(results_path,"intervention_mediator_results.RDS"))
-
-MO_malaria_outcome_1mo_ceiling = mediator_analysis_application(data_set = data_monthly_ceiling, crossing_set = crossing_malaria_outcome_MO_ceiling, model = "mediator-outcome")
-# MO_malaria_outcome_1mo_round = mediator_analysis_application(data_set = data_monthly_round, crossing_set = crossing_malaria_outcome_MO_round, model = "mediator-outcome")
-# MO_malaria_outcome_1mo = rbind(MO_malaria_outcome_1mo_ceiling, MO_malaria_outcome_1mo_round)
-# View(MO_malaria_outcome_1mo)
-# saveRDS(MO_malaria_outcome_1mo, paste0(results_path,"mediator_outcome_malaria_outcome_1mo.RDS"))
-
 MO_zscore_3mo_stratified = mediator_analysis_application(data_set = data_zscore_quarterly, crossing_set = crossing_zscore_MO_3mo, model = "mediator-outcome")
 View(MO_zscore_3mo_stratified)
 saveRDS(MO_zscore_3mo_stratified, paste0(here::here(), "/4-result-data/mediator_outcome_zscore_results_3mo_stratified.RDS"))
 
-MO_prevalence_3mo_stratified = mediator_analysis_application(data_set = data_prevalence_quarterly, crossing_set = crossing_prevalence_MO_3mo, model = "mediator-outcome")
-View(MO_prevalence_3mo_stratified)
-saveRDS(MO_prevalence_3mo_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_prevalence_results_3mo_stratified.RDS"))
 
-MO_velocity_1mo_stratified = mediator_analysis_application(data_set = data_velocity_1month, crossing_set = crossing_velocity_1mo, model = "mediator-outcome")
-View(MO_velocity_1mo_stratified)
-saveRDS(MO_velocity_1mo_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_velocity_results_1mo_stratified.RDS"))
-
-MO_velocity_2mo_stratified = mediator_analysis_application(data_set = data_velocity_2month, crossing_set = crossing_velocity_2mo, model = "mediator-outcome")
-View(MO_velocity_2mo_stratified)
-saveRDS(MO_velocity_2mo_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_velocity_results_2mo_stratified.RDS"))
-
-MO_velocity_3mo_stratified = mediator_analysis_application(data_set = data_velocity_3month, crossing_set = crossing_velocity_3mo, model = "mediator-outcome")
-View(MO_velocity_3mo_stratified)
-saveRDS(MO_velocity_3mo_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_velocity_results_3mo_stratified.RDS"))
-
-MO_incidence_3mo_stratified = mediator_analysis_application(data_set = data_incidence_3month, crossing_set = crossing_incidence_3mo, model = "mediator-outcome")
-View(MO_incidence_3mo_stratified)
-saveRDS(MO_incidence_3mo_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_incidence_results_3mo_stratified.RDS"))
-
-MO_incidence_6mo_stratified = mediator_analysis_application(data_set = data_incidence_6month, crossing_set = crossing_incidence_6mo, model = "mediator-outcome")
-View(MO_incidence_6mo_stratified)
-saveRDS(MO_incidence_6mo_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_incidence_results_6mo_stratified.RDS"))
-
-MO_incidence_12mo_stratified = mediator_analysis_application(data_set = data_incidence_12month, crossing_set = crossing_incidence_12mo, model = "mediator-outcome")
-View(MO_incidence_12mo_stratified)
-saveRDS(MO_incidence_12mo_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_incidence_results_12mo_stratified.RDS"))
-
-MO_aim2_1_stratified = mediator_analysis_application(data_set = data_incidence_3month %>% mutate(preterm = as.numeric(as.character(preterm)),
-                                                                                                 LBW = as.numeric(as.character(LBW))), 
-                                                     crossing_set = crossing_2.1, model = "mediator-outcome")
-View(MO_aim2_1_stratified)
-saveRDS(MO_aim2_1_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_aim2_1_stratified.RDS"))
-
-MO_prec_malaria_3mo_stratified = mediator_analysis_application(data_set = data_incidence_3month, crossing_set = crossing_preceding_malaria, model = "mediator-outcome")
-View(MO_prec_malaria_3mo_stratified)
-saveRDS(MO_prec_malaria_3mo_stratified, paste0(results_path,"IM-MO-stratified/mediator_outcome_prec_malaria_3mo_stratified.RDS"))
-
-
-# RESULT CHECK
-check_data_binary = data_incidence_12month[data_incidence_12month$age_1_12 == "1 day- 12 months", ]
-check_data_binary = check_data_binary[!is.na(check_data_binary$incident_whz_s_waste_age_1_12),]
-model.fit1 = glm(
-  incident_whz_s_waste_age_1_12 ~ incidentmalaria + sex+ gravidity_cat,
-  data = check_data_binary,
-  family = poisson(link = "log"),
-  na.action = na.omit
-)
-summary(model.fit1)
-  
-check_data_continuous = data_zscore_quarterly[data_zscore_quarterly$agecat_birth == "1 day-3 months",]
-check_data_continuous <- check_data_continuous[!is.na(check_data_continuous[["gestational_weightchange"]]),]
-model.fit2 = glm(	
-  haz_quarter~ gestational_weightchange,
-  data = check_data_continuous,
-  family = gaussian(link = "identity"))
-summary(model.fit2)
-
-
-ggplot(data_monthly_ceiling, aes(x = agemonth_ceiling, y = haz, color = as.factor(anymalaria), group = as.factor(anymalaria))) +
-  stat_summary(fun = mean, geom = "point") +  
-  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
-  stat_summary(fun = mean, geom = "line", aes(group = as.factor(anymalaria))) +  
-  labs(color = "Any Malaria Infection") +
-  ggtitle("LAZ")+
-  theme_minimal()
-
-ggplot(data_monthly_ceiling, aes(x = agemonth_ceiling, y = haz, color = as.factor(new_anymalaria), group = as.factor(new_anymalaria))) +
-  stat_summary(fun = mean, geom = "point") +  
-  stat_summary(fun.data = mean_se, geom = "errorbar", width = 0.2) +
-  stat_summary(fun = mean, geom = "line", aes(group = as.factor(new_anymalaria))) +  
-  labs(color = "Imputed Malaria Infection") +
-  ggtitle("LAZ")+
-  theme_minimal()
